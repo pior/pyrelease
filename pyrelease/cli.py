@@ -15,8 +15,8 @@ def fatal(msg):
     sys.exit(1)
 
 
-def capture(args):
-    result = run(args, check=True, stdout=PIPE)
+def capture(args, check=True):
+    result = run(args, check=check, stdout=PIPE)
     return result.stdout.strip().decode()
 
 
@@ -28,7 +28,7 @@ def get_git_tags(remote=False):
     if remote:
         output = capture(['git', 'ls-remote', '--tags', 'origin'])
     else:
-        output = capture(['git', 'show-ref', '--tags'])
+        output = capture(['git', 'show-ref', '--tags'], check=False)
 
     lines = re.findall(r'refs/tags/([^^\n]+)', output)
     return list(set(lines))
