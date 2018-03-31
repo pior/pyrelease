@@ -4,7 +4,7 @@ import fileinput
 import pathlib
 import re
 import sys
-from subprocess import run, PIPE
+from subprocess import run, PIPE, CalledProcessError
 
 
 def title(msg):
@@ -129,4 +129,10 @@ def main():
     parser.add_argument('--push', default=False, action='store_true')
     parser.add_argument('--upload', default=False, action='store_true')
     args = parser.parse_args()
-    release(args)
+
+    try:
+        release(args)
+    except CalledProcessError as err:
+        sys.exit(err)
+    except KeyboardInterrupt:
+        sys.exit(1)

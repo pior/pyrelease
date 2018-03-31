@@ -2,14 +2,14 @@ from setuptools import setup, find_packages
 
 
 description = """
-See `github repo <https://github.com/pior/pyrelease>`_ for information.
+See `github repo <https://github.com/pior/pyreleaser>`_ for information.
 """
 
 VERSION = '0.2'  # maintained by release tool
 
 
 setup(
-    name='pyrelease',
+    name='pyreleaser',
     version=VERSION,
     description='Standard release flow for Python packages',
     long_description=description,
@@ -22,13 +22,13 @@ setup(
     keywords='release packaging twine setuptools',
     author="Pior Bastida",
     author_email="pior@pbastida.net",
-    url="https://github.com/pior/pyrelease",
+    url="https://github.com/pior/pyreleaser",
     license="MIT",
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     install_requires=['twine'],
     entry_points={
-        'console_scripts': ['pyrelease = pyrelease.cli:main'],
+        'console_scripts': ['pyreleaser = pyreleaser.cli:main'],
     },
 )

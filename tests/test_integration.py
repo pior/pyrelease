@@ -12,7 +12,7 @@ def git(path, *args):
 @pytest.fixture
 def cmd(repo):
     def func(*args, **kwargs):
-        process = run(['pyrelease', *args], cwd=repo, **kwargs)
+        process = run(['pyreleaser', *args], cwd=repo, **kwargs)
         return process
     return func
 
