@@ -1,9 +1,9 @@
-# PyRelease
+# PyReleaser
 
-[![Version](https://img.shields.io/pypi/v/pyrelease.svg)](https://pypi.python.org/pypi/pyrelease)
-[![License](https://img.shields.io/pypi/l/pyrelease.svg)](https://pypi.python.org/pypi/pyrelease)
-[![PythonVersions](https://img.shields.io/pypi/pyversions/pyrelease.svg)](https://pypi.python.org/pypi/pyrelease)
-[![Build](https://travis-ci.org/pior/pyrelease.svg?branch=master)](https://travis-ci.org/pior/pyrelease)
+[![Version](https://img.shields.io/pypi/v/pyreleaser.svg)](https://pypi.python.org/pypi/pyreleaser)
+[![License](https://img.shields.io/pypi/l/pyreleaser.svg)](https://pypi.python.org/pypi/pyreleaser)
+[![PythonVersions](https://img.shields.io/pypi/pyversions/pyreleaser.svg)](https://pypi.python.org/pypi/pyreleaser)
+[![Build](https://travis-ci.org/pior/pyreleaser.svg?branch=master)](https://travis-ci.org/pior/pyreleaser)
 
 Command to release your Python project to PyPI.
 
@@ -17,14 +17,14 @@ Release flow:
 ## Install
 
 ```shell
-$ pip install pyrelease
+$ pip install pyreleaser
 ```
 
 
 ## Usage
 
 ```bash
-$ pyrelease 0.3 --push --upload
+$ pyreleaser 0.3 --push --upload
 
 🍄  Updating setup.py...
 
