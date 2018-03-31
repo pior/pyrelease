@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 import fileinput
+import pathlib
 import re
 import sys
-from subprocess import run, PIPE, STDOUT
+from subprocess import run, PIPE
 
 
 def title(msg):
@@ -11,7 +12,7 @@ def title(msg):
 
 
 def fatal(msg):
-    print(f'\n💥  Fatal: {msg}\n')
+    print(f'\n💥  Fatal: {msg}\n', file=sys.stderr)
     sys.exit(1)
 
 
@@ -80,6 +81,9 @@ def release(options):
 
     if version in get_git_tags(remote=True):
         fatal(f'tag already exists remotely ({version})')
+
+    if not pathlib.Path('setup.py').exists():
+        fatal('missing setup.py file')
 
     # Prepare
 
