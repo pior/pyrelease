@@ -80,6 +80,12 @@ def test_remote_tag_exists(cmd, repo):
     assert b'tag already exists remotely' in proc.stderr
 
 
+def test_version_already_in_setuppy(cmd, repo, project):
+    proc = cmd('0.0', stdout=PIPE, stderr=PIPE)
+    assert proc.returncode == 1
+    assert b'already the current version' in proc.stderr
+
+
 def test_run(cmd, repo, project):
     proc = cmd('1.0', stdout=PIPE, stderr=PIPE)
     assert proc.returncode == 0

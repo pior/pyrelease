@@ -40,6 +40,11 @@ def is_git_clean():
     return result.returncode == 0
 
 
+def read_version_setup_py():
+    output = capture(['python', 'setup.py', '--version'])
+    return output
+
+
 def update_version_setup_py(version):
     changed = False
     for line in fileinput.input('setup.py', inplace=True):
@@ -84,6 +89,9 @@ def release(options):
 
     if not pathlib.Path('setup.py').exists():
         fatal('missing setup.py file')
+
+    if version_string == read_version_setup_py():
+        fatal('already the current version')
 
     # Prepare
 
