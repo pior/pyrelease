@@ -7,13 +7,12 @@ import sys
 from subprocess import run, PIPE, CalledProcessError
 
 
+class Error(Exception):
+    pass
+
+
 def title(msg):
     print(f'\n🍄  {msg}\n')
-
-
-def fatal(msg):
-    print(f'\n💥  Fatal: {msg}\n', file=sys.stderr)
-    sys.exit(1)
 
 
 def capture(args, check=True):
@@ -64,41 +63,41 @@ def is_twine_installed():
 def release(options):
     version_string = options.version
     if version_string.startswith('v'):
-        fatal('A version can\'t begin with a v')
+        raise Error('A version can\'t begin with a v')
     version = f'v{version_string}'
 
     # Checks
 
     if options.upload:
         if not is_twine_installed():
-            fatal('twine is not installed')
+            raise Error('twine is not installed')
 
     if options.only_on:
         current_branch = get_git_branch()
         if current_branch != options.only_on:
-            fatal(f'not on the {options.only_on} branch. ({current_branch})')
+            raise Error(f'not on the {options.only_on} branch. ({current_branch})')
 
     if not is_git_clean():
-        fatal('uncommited files')
+        raise Error('uncommited files')
 
     if version in get_git_tags(remote=False):
-        fatal(f'tag already exists locally ({version})')
+        raise Error(f'tag already exists locally ({version})')
 
     if version in get_git_tags(remote=True):
-        fatal(f'tag already exists remotely ({version})')
+        raise Error(f'tag already exists remotely ({version})')
 
     if not pathlib.Path('setup.py').exists():
-        fatal('missing setup.py file')
+        raise Error('missing setup.py file')
 
     if version_string == read_version_setup_py():
-        fatal('already the current version')
+        raise Error('already the current version')
 
     # Prepare
 
     title('Updating setup.py...')
     changed = update_version_setup_py(version_string)
     if not changed:
-        fatal('failed to update setup.py')
+        raise Error('failed to update setup.py')
 
     # Build
 
@@ -106,7 +105,7 @@ def release(options):
     run(['rm', '-rf', 'dist'], check=True)
     result = run(['python', 'setup.py', 'sdist', 'bdist_wheel'], stdout=PIPE)
     if result.returncode != 0:
-        fatal('failed to build distribution')
+        raise Error('failed to build distribution')
 
     # Create
 
@@ -140,7 +139,8 @@ def main():
 
     try:
         release(args)
-    except CalledProcessError as err:
-        sys.exit(err)
+    except (CalledProcessError, Error) as err:
+        print(f'\n💥  Fatal: {err}\n', file=sys.stderr)
+        sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(1)
