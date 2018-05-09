@@ -60,6 +60,7 @@ def is_twine_installed():
 
 
 def release(options):
+    # pylint: disable=too-many-branches
     version_string = options.version
     if version_string.startswith('v'):
         raise Error('A version can\'t begin with a v')

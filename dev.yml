@@ -1,8 +1,8 @@
 up:
   - python: 3.6.4
   - custom:
-      met?: pipenv --bare sync
-      meet: pip install pipenv && pipenv --bare sync
+      met?: pipenv sync --bare --dev
+      meet: pip install pipenv && pipenv install --dev
   - custom:
       name: Install project in develop mode
       met?: pip show pyreleaser 1> /dev/null 2> /dev/null
@@ -10,7 +10,7 @@ up:
 
 commands:
   lint:
-    run: pylama
+    run: pylama; pylint --rcfile=pylintrc pyreleaser tests
   clean:
     run: find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
   test:

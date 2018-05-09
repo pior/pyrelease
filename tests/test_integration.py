@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name,unused-argument
 from subprocess import run, PIPE
 
 import pytest
@@ -89,7 +90,7 @@ def test_version_already_in_setuppy(cmd, repo, project):
 def test_run(cmd, repo, project):
     proc = cmd('1.0', stdout=PIPE, stderr=PIPE)
     assert proc.returncode == 0
-    assert b'' == proc.stderr
+    assert proc.stderr == b''
 
     setuppy = repo.join('setup.py').read()
     assert "\nVERSION = '1.0'  # " in setuppy

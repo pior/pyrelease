@@ -8,3 +8,4 @@ pylama = "*"
 pytest = "*"
 
 [dev-packages]
+pylint = "*"
