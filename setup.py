@@ -27,7 +27,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=['twine'],
+    install_requires=['click', 'twine'],
     entry_points={
         'console_scripts': ['pyreleaser = pyreleaser.cli:main'],
     },

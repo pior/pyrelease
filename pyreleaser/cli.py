@@ -1,21 +1,28 @@
-import argparse
 import fileinput
 import pathlib
 import re
-import sys
-from subprocess import run, PIPE, CalledProcessError
+import subprocess
+import functools
+
+import click
 
 
-class Error(Exception):
-    pass
+def handle_errors(func):
+    @functools.wraps(func)
+    def decorator(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except subprocess.CalledProcessError as err:
+            raise click.ClickException(err)
+    return decorator
 
 
 def title(msg):
-    print(f'\n🍄  {msg}\n')
+    print(f'🔸  {msg}')
 
 
 def capture(args, check=True):
-    result = run(args, check=check, stdout=PIPE)
+    result = subprocess.run(args, check=check, stdout=subprocess.PIPE)
     return result.stdout.strip().decode()
 
 
@@ -34,7 +41,11 @@ def get_git_tags(remote=False):
 
 
 def is_git_clean():
-    result = run(['git', 'diff-index', '--quiet', 'HEAD', '--'], check=False, stdout=PIPE)
+    result = subprocess.run(
+        ['git', 'diff-index', '--quiet', 'HEAD', '--'],
+        check=False,
+        stdout=subprocess.PIPE,
+    )
     return result.returncode == 0
 
 
@@ -54,93 +65,97 @@ def update_version_setup_py(version):
     return changed
 
 
-def is_twine_installed():
-    result = run(['which', 'twine'])
-    return result.returncode == 0
-
-
-def release(options):
-    # pylint: disable=too-many-branches
-    version_string = options.version
-    if version_string.startswith('v'):
-        raise Error('A version can\'t begin with a v')
-    version = f'v{version_string}'
-
-    # Checks
-
-    if options.upload:
-        if not is_twine_installed():
-            raise Error('twine is not installed')
-
-    if options.only_on:
+def run_checks(version, tag_name, only_on):
+    if only_on:
         current_branch = get_git_branch()
-        if current_branch != options.only_on:
-            raise Error(f'not on the {options.only_on} branch. ({current_branch})')
+        if current_branch != only_on:
+            raise click.ClickException(f'not on the {only_on} branch. ({current_branch})')
 
     if not is_git_clean():
-        raise Error('uncommited files')
+        raise click.ClickException('uncommited files')
 
-    if version in get_git_tags(remote=False):
-        raise Error(f'tag already exists locally ({version})')
+    if tag_name in get_git_tags(remote=False):
+        raise click.ClickException(f'tag already exists locally ({tag_name})')
 
-    if version in get_git_tags(remote=True):
-        raise Error(f'tag already exists remotely ({version})')
+    if tag_name in get_git_tags(remote=True):
+        raise click.ClickException(f'tag already exists remotely ({tag_name})')
 
     if not pathlib.Path('setup.py').exists():
-        raise Error('missing setup.py file')
+        raise click.ClickException('missing setup.py file')
 
-    if version_string == read_version_setup_py():
-        raise Error('already the current version')
+    if version == read_version_setup_py():
+        raise click.ClickException(f'{version} is already the current version')
 
-    # Prepare
 
-    title('Updating setup.py...')
-    changed = update_version_setup_py(version_string)
+def run_release(version, tag_name):
+    title('Update version in setup.py')
+    changed = update_version_setup_py(version)
     if not changed:
-        raise Error('failed to update setup.py')
+        raise click.ClickException('failed to update setup.py')
 
-    # Build
+    title('Commit the release')
+    subprocess.run(['git', 'add', 'setup.py'], check=True)
+    subprocess.run(['git', 'commit', '-m', f'Release {tag_name}'], check=True)
 
-    title('Building distribution...')
-    run(['rm', '-rf', 'dist'], check=True)
-    result = run(['python', 'setup.py', 'sdist', 'bdist_wheel'], stdout=PIPE)
-    if result.returncode != 0:
-        raise Error('failed to build distribution')
+    title(f'Tag the release: {tag_name}')
+    subprocess.run(['git', 'tag', tag_name], check=True)
 
-    # Create
 
-    title('Create the release commit')
-    run(['git', 'add', 'setup.py'], check=True)
-    run(['git', 'commit', '-m', f'Release {version}'], check=True)
-
-    title('Creating tag')
-    run(['git', 'tag', '-a', '-m', f'Release tag for {version}', version], check=True)
-
-    # Publish
-
-    if options.push:
+def run_push(push):
+    if push:
         title('Pushing to git upstream')
-        run(['git', 'push', '--follow-tags'], check=True)
+        subprocess.run(['git', 'push', '--follow-tags'], check=True)
     else:
-        title('Don\'t forget to push:\n  git push --follow-tags\n')
-
-    if options.upload:
-        title('Uploading to PyPI')
-        run(['twine', 'upload', 'dist/*'], check=True)
+        print(f'\n🔔  Don\'t forget to push with: git push --follow-tags')
 
 
+@click.command()
+@click.option('--only-on', metavar='BRANCH-NAME')
+@click.option('--push', is_flag=True)
+@click.argument('version')
+@handle_errors
+def create(version, push, only_on):
+    version = version.lstrip('v')
+    tag_name = f'v{version}'
+
+    run_checks(version, tag_name, only_on)
+    run_release(version, tag_name)
+    run_push(push)
+
+
+def build_distributions():
+    subprocess.run(['rm', '-rf', 'dist'], check=True)
+
+    result = subprocess.run(
+        ['python', 'setup.py', 'sdist', 'bdist_wheel'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    if result.returncode != 0:
+        print(result.stdout.decode())
+        raise click.ClickException('failed to build distribution')
+
+
+@click.command()
+@click.option('--dry-run', is_flag=True)
+@handle_errors
+def upload(dry_run):
+    title('Build distributions')
+    build_distributions()
+
+    title('Upload to PyPI')
+    args = ['twine', 'upload', 'dist/*']
+    if not dry_run:
+        subprocess.run(args, check=True)
+    else:
+        print(f'Not running: {args}')
+
+
+@click.group()
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('version', help='Version string without the "v"')
-    parser.add_argument('--only-on', type=str, metavar='BRANCH-NAME')
-    parser.add_argument('--push', default=False, action='store_true')
-    parser.add_argument('--upload', default=False, action='store_true')
-    args = parser.parse_args()
+    pass
 
-    try:
-        release(args)
-    except (CalledProcessError, Error) as err:
-        print(f'\n💥  Fatal: {err}\n', file=sys.stderr)
-        sys.exit(1)
-    except KeyboardInterrupt:
-        sys.exit(1)
+
+main.add_command(create)
+main.add_command(upload)
