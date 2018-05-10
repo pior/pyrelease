@@ -98,7 +98,7 @@ def run_release(version, tag_name):
     subprocess.run(['git', 'commit', '-m', f'Release {tag_name}'], check=True)
 
     title(f'Tag the release: {tag_name}')
-    subprocess.run(['git', 'tag', tag_name], check=True)
+    subprocess.run(['git', 'tag', '-a', '-m', f'Release {tag_name}', tag_name], check=True)
 
 
 def run_push(push):
