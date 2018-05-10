@@ -5,58 +5,47 @@
 [![PythonVersions](https://img.shields.io/pypi/pyversions/pyreleaser.svg)](https://pypi.python.org/pypi/pyreleaser)
 [![Build](https://travis-ci.org/pior/pyreleaser.svg?branch=master)](https://travis-ci.org/pior/pyreleaser)
 
-Command to release your Python project to PyPI.
+Simple command to release your Python project to PyPI.
 
 Release flow:
 - update setup.py version
-- git tag
-- git push
-- twine upload
+- `git tag -a`
+- `git push`
+
+Upload flow:
+- `python setup.py sdist bdist_wheel`
+- `twine upload`
 
 
 ## Install
 
 ```shell
-$ pip install pyreleaser
+$ pip install 'pyreleaser >= 0.5.1'
 ```
 
 
 ## Usage
 
+Create the release:
 ```bash
-$ pyreleaser 0.3 --push --upload
-
-🍄  Updating setup.py...
-
-
-🍄  Building distribution...
-
-
-🍄  Create the release commit
-
-[master ec09993] Release v0.3
+$ pyreleaser create 0.5.1
+🔸  Update version in setup.py
+🔸  Commit the release
+[master 1b206aa] Release v0.5.1
  1 file changed, 1 insertion(+), 1 deletion(-)
+🔸  Tag the release: v0.5.1
 
-🍄  Creating tag
+🔔  Don't forget to push with: git push --follow-tags
+```
 
-
-🍄  Pushing to git upstream
-
-Counting objects: 12, done.
-Delta compression using up to 4 threads.
-Compressing objects: 100% (12/12), done.
-Writing objects: 100% (12/12), 2.71 KiB | 2.71 MiB/s, done.
-Total 12 (delta 6), reused 0 (delta 0)
-remote: Resolving deltas: 100% (6/6), completed with 3 local objects.
-To github.com:pior/appsecrets.git
-   3755ebd..ec09993  master -> master
- * [new tag]         v0.3 -> v0.3
-
-🍄  Uploading to PyPI
-
+Upload to PyPI:
+```bash
+$ pyreleaser upload
+🔸  Build distributions
+🔸  Upload to PyPI
 Uploading distributions to https://upload.pypi.org/legacy/
-Uploading appsecrets-0.3-py3-none-any.whl
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 13.8k/13.8k [00:01<00:00, 12.6kB/s]
-Uploading appsecrets-0.3.tar.gz
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 9.95k/9.95k [00:00<00:00, 11.1kB/s]
+Uploading pyreleaser-0.5.1-py3-none-any.whl
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8.66k/8.66k [00:01<00:00, 6.85kB/s]
+Uploading pyreleaser-0.5.1.tar.gz
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7.75k/7.75k [00:00<00:00, 8.02kB/s]
 ```
