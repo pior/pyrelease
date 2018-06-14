@@ -93,7 +93,7 @@ def test_branch_check(cmd, repo, project):
     assert b'not on the wrongbranch branch' in proc.stderr
 
 
-def test_run(cmd, repo, project):
+def test_run_version_number(cmd, repo, project):
     proc = cmd('create', '1.0')
     assert proc.returncode == 0
     assert proc.stderr == b''
@@ -103,6 +103,52 @@ def test_run(cmd, repo, project):
 
     tags = git(repo, 'tag').stdout.split(b'\n')
     assert b'v1.0' in tags
+
+
+def test_run_upgrade_type_major(cmd, repo, project):
+    proc = cmd('create', 'major')
+    assert proc.returncode == 0
+    assert proc.stderr == b''
+
+    setuppy = repo.join('setup.py').read()
+    assert "\nVERSION = '1.0.0'  # " in setuppy
+
+    tags = git(repo, 'tag').stdout.split(b'\n')
+    assert b'v1.0.0' in tags
+
+
+def test_run_upgrade_type_minor(cmd, repo, project):
+    proc = cmd('create', 'minor')
+    assert proc.returncode == 0
+    assert proc.stderr == b''
+
+    setuppy = repo.join('setup.py').read()
+    assert "\nVERSION = '0.1.0'  # " in setuppy
+
+    tags = git(repo, 'tag').stdout.split(b'\n')
+    assert b'v0.1.0' in tags
+
+
+def test_run_upgrade_type_patch(cmd, repo, project):
+    proc = cmd('create', 'patch')
+    assert proc.returncode == 0
+    assert proc.stderr == b''
+
+    setuppy = repo.join('setup.py').read()
+    assert "\nVERSION = '0.0.1'  # " in setuppy
+
+    tags = git(repo, 'tag').stdout.split(b'\n')
+    assert b'v0.0.1' in tags
+
+    proc = cmd('create', 'patch')
+    assert proc.returncode == 0
+    assert proc.stderr == b''
+
+    setuppy = repo.join('setup.py').read()
+    assert "\nVERSION = '0.0.2'  # " in setuppy
+
+    tags = git(repo, 'tag').stdout.split(b'\n')
+    assert b'v0.0.2' in tags
 
 
 def test_upload_usage(cmd):
