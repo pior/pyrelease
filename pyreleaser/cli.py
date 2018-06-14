@@ -109,17 +109,48 @@ def run_push(push):
         print(f'\n🔔  Don\'t forget to push with: git push --follow-tags')
 
 
+def update_version(current_version, upgrade_type):
+    split_version = current_version.split('.')
+    new_split = []
+    if upgrade_type == 'major':
+        new_split.append(int(split_version[0]) + 1)
+        new_split.append(0)
+        new_split.append(0)
+    elif upgrade_type == 'minor':
+        new_split.append(int(split_version[0]))
+        new_split.append(int(split_version[1]) + 1)
+        new_split.append(0)
+    else:
+        new_split.append(int(split_version[0]))
+        new_split.append(int(split_version[1]))
+        if len(split_version) == 2:
+            new_split.append(1)
+        else:
+            new_split.append(int(split_version[2]) + 1)
+    return '.'.join(map(str, new_split))
+
+
 @click.command()
 @click.option('--only-on', metavar='BRANCH-NAME')
 @click.option('--push', is_flag=True)
 @click.argument('version')
 @handle_errors
 def create(version, push, only_on):
-    version = version.lstrip('v')
-    tag_name = f'v{version}'
 
-    run_checks(version, tag_name, only_on)
-    run_release(version, tag_name)
+    if re.search(r'^[v]*[0-9]+\.[0-9]+[\.\[0-9\]+]*$', version):
+        new_version = version.lstrip('v')
+        tag_name = f'v{version}'
+    elif version in ['major', 'minor', 'patch']:
+        current_version = read_version_setup_py()
+        new_version = update_version(current_version, version)
+        tag_name = f'v{new_version}'
+    else:
+        raise click.ClickException(
+            f'{version} is not a valid version or semantic version upgrade type.'
+        )
+
+    run_checks(new_version, tag_name, only_on)
+    run_release(new_version, tag_name)
     run_push(push)
 
 
