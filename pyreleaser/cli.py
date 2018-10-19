@@ -1,8 +1,9 @@
 import fileinput
+import functools
 import pathlib
 import re
 import subprocess
-import functools
+import sys
 
 import click
 
@@ -19,6 +20,7 @@ def handle_errors(func):
 
 def title(msg):
     print(f'🔸  {msg}')
+    sys.stdout.flush()
 
 
 def capture(args, check=True):
@@ -91,7 +93,10 @@ def run_release(version, tag_name):
     title('Update version in setup.py')
     changed = update_version_setup_py(version)
     if not changed:
-        raise click.ClickException('failed to update setup.py')
+        raise click.ClickException(
+            'failed to update setup.py.'
+            ' Make sure the version is declared as this: `VERSION = \'1.2.3\'`'
+        )
 
     title('Commit the release')
     subprocess.run(['git', 'add', 'setup.py'], check=True)
