@@ -10,3 +10,8 @@ commands:
     run: find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
   test:
     run: pytest -v
+
+  release:
+    run: pyreleaser create --only-on master --push
+  publish:
+    run: pyreleaser upload
