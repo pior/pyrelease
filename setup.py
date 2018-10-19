@@ -5,7 +5,7 @@ description = """
 See `github repo <https://github.com/pior/pyreleaser>`_ for information.
 """
 
-VERSION = '0.5.1'  # maintained by release tool
+VERSION = '0.5.2'  # maintained by release tool
 
 
 setup(
