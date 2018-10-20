@@ -7,12 +7,12 @@
 
 Simple command to release your Python project to PyPI.
 
-Release flow:
+PyRelease implements the following release flow:
 - update setup.py version
 - `git tag -a`
 - `git push`
 
-Upload flow:
+For the upload flow:
 - `python setup.py sdist bdist_wheel`
 - `twine upload`
 
